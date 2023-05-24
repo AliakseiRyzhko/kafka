@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet logicalFilePath="2023-05-22-1-create-table-transaction"
+               id="2023-05-22-1-create-table-transaction" author="a.r">
+        <createTable tableName="transaction">
+            <column name="id" type="serial">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="client_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="transaction_type" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="bank" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="quantity" type="int">
+            <constraints nullable="false"/>
+            </column>
+            <column name="price" type="decimal(10,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_cost" type="numeric(19, 2)"/>
+            <column name="created_at" type="date">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="2023-05-22-2-create-table-transaction" author="a.r.">
+        <addForeignKeyConstraint baseColumnNames="client_id"
+                                 baseTableName="transaction"
+                                 constraintName="transactions"
+                                 deferrable="false"
+                                 initiallyDeferred="false"
+                                 onDelete="NO ACTION"
+                                 onUpdate="NO ACTION"
+                                 referencedColumnNames="id"
+                                 referencedTableName="client"/>
+    </changeSet>
+
+</databaseChangeLog>
