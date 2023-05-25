@@ -1,0 +1,46 @@
+{
+	"info": {
+		"_postman_id": "50b6fd9f-3aea-42d3-9429-f9ba4699b4db",
+		"name": "kafka",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "27140141"
+	},
+	"item": [
+		{
+			"name": "http://localhost:8081/api/v1/client",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\" : 23,\r\n    \"clientName\" : \"notFake22\",\r\n    \"email\" : \"bla-bla2\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8081/api/v1/client"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8081/api/v1/transaction",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n        \"bank\" : \"PriorBank2\",\r\n    \"clientId\" : 23,\r\n    \"transactionType\" : \"OUTCOME\",\r\n    \"quantity\" : 5,\r\n    \"price\" : 2.22,\r\n    \"createdAt\" : \"2023-05-19T15:56:00\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8081/api/v1/transaction"
+			},
+			"response": []
+		}
+	]
+}
