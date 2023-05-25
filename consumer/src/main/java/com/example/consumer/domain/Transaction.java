@@ -26,7 +26,7 @@ public class Transaction {
     private Long id;
     @Column(name = "bank")
     private String bank;
-    @Column(name="transaction_type", updatable = false, nullable = false)
+    @Column(name = "transaction_type", updatable = false, nullable = false)
     @Enumerated(value = EnumType.STRING)
     private TransactionType transactionType;
     @Column(name = "quantity")
@@ -35,11 +35,11 @@ public class Transaction {
     private Double price;
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-    @Column(name="total_cost")
+    @Column(name = "total_cost")
     private BigDecimal totalCost;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="client_id")
+    @JoinColumn(name = "client_id")
     @Fetch(FetchMode.JOIN)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Client client;

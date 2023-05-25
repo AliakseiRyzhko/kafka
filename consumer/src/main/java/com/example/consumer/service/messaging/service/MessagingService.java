@@ -28,8 +28,8 @@ public class MessagingService {
     @KafkaListener(topics = topicCreateClient, groupId = clientGroupId, containerFactory = "clientContainerFactory")
     public ClientEvent consumeClient(ClientEvent clientEvent) {
         log.info("client message consumed {}", clientEvent);
-            clientService.save(modelMapper.map(clientEvent, ClientDto.class));
-            return clientEvent;
+        clientService.save(modelMapper.map(clientEvent, ClientDto.class));
+        return clientEvent;
     }
 
     @Transactional

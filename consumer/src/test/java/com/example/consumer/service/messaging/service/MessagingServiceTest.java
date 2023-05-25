@@ -52,10 +52,10 @@ class MessagingServiceTest {
                 .email("fakeEmail").build();
         //when
         KafkaProducer producer = new KafkaProducer<>(getProperties(bootstrapServers));
-        producer.send(new ProducerRecord<>(TOPIC_NAME_SEND_CLIENT,client));
+        producer.send(new ProducerRecord<>(TOPIC_NAME_SEND_CLIENT, client));
         producer.close();
         //Tests in progress
-   //     messagingService.consumeClient(client);
+        //     messagingService.consumeClient(client);
 
     }
 

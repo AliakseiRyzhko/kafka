@@ -22,7 +22,7 @@ public class Client {
     private String email;
     @OneToMany(mappedBy = "client", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
     private List<Transaction> transactions;
-    @Column(name="is_fake_client")
+    @Column(name = "is_fake_client")
     private Boolean isFakeClient;
 
     @Override

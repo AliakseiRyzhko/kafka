@@ -25,7 +25,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public void save(ClientDto clientDto) {
-        Client client =  modelMapper.map(clientDto, Client.class);
+        Client client = modelMapper.map(clientDto, Client.class);
         Client savedClient = clientRepository.save(client);
 
         log.info("client saved {}", savedClient);
@@ -52,7 +52,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public Client addTransactionToClient(TransactionEvent transactionEvent) {
-       final Client client = getById(transactionEvent.getClientId());
+        final Client client = getById(transactionEvent.getClientId());
 
         Transaction transaction = Transaction.builder()
                 .bank(transactionEvent.getBank())

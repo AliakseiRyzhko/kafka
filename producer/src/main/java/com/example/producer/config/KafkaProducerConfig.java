@@ -24,10 +24,10 @@ public class KafkaProducerConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
-   @Bean
-   public ProducerFactory<String, Object> clientProducerFactory() {
-       return new DefaultKafkaProducerFactory<>(getKafkaConfigProps());
-   }
+    @Bean
+    public ProducerFactory<String, Object> clientProducerFactory() {
+        return new DefaultKafkaProducerFactory<>(getKafkaConfigProps());
+    }
 
     @Bean
     public KafkaTemplate<String, Object> clientKafkaTemplate() {
