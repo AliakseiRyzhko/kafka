@@ -1,6 +1,6 @@
 package com.example.consumer.service.messaging.service;
 
-import com.example.consumer.domain.dto.ClientDto;
+import com.example.consumer.domain.Client;
 import com.example.consumer.service.ClientService;
 import com.example.consumer.service.messaging.event.ClientEvent;
 import com.example.consumer.service.messaging.event.TransactionEvent;
@@ -28,7 +28,7 @@ public class MessagingService {
     @KafkaListener(topics = topicCreateClient, groupId = clientGroupId, containerFactory = "clientContainerFactory")
     public ClientEvent consumeClient(ClientEvent clientEvent) {
         log.info("client message consumed {}", clientEvent);
-        clientService.save(modelMapper.map(clientEvent, ClientDto.class));
+        clientService.save(modelMapper.map(clientEvent, Client.class));
         return clientEvent;
     }
 
@@ -40,7 +40,7 @@ public class MessagingService {
             clientService.saveFakeClient(transactionEvent.getClientId());
         }
         clientService.save(
-                modelMapper.map(clientService.addTransactionToClient(transactionEvent), ClientDto.class));
+                modelMapper.map(clientService.addTransactionToClient(transactionEvent), Client.class));
         return transactionEvent;
     }
 }

@@ -1,7 +1,6 @@
 package com.example.consumer.service.impl;
 
 import com.example.consumer.domain.Transaction;
-import com.example.consumer.domain.dto.TransactionDto;
 import com.example.consumer.repository.TransactionRepository;
 import com.example.consumer.service.TransactionService;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +17,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final ModelMapper modelMapper;
 
     @Override
-    public void save(TransactionDto transactionDto) {
-        Transaction transaction = modelMapper.map(transactionDto, Transaction.class);
+    public void save(Transaction transaction) {
         Transaction savedTransaction = transactionRepository.save(transaction);
 
         log.info("client transaction saved {}", savedTransaction);
