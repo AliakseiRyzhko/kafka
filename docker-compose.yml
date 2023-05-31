@@ -84,4 +84,22 @@ services:
     ports:
       - "5050:80"
 
+  kafka-topics-generator:
+    image: confluentinc/cp-kafka:6.2.4
+    depends_on:
+      - kafka
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      # blocks until kafka is reachable
+      kafka-topics --bootstrap-server kafka:9092 --list
+      
+      echo -e 'Creating kafka topics'
+      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic create.client --replication-factor 1 --partitions 5
+      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic create.transaction --replication-factor 1 --partitions 5
+      
+      echo -e 'Successfully created the following topics:'
+      kafka-topics --bootstrap-server kafka:9092 --list
+  
+
 
