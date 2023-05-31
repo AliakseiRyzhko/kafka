@@ -56,7 +56,7 @@ class ClientActionServiceImplTest {
                 .email("fakeEmail").build();
         //when
         clientActionService.createClient(client);
-        KafkaConsumer<String, ClientEvent> consumer = new KafkaConsumer<>(getProperties(bootstrapServers));
+        KafkaConsumer<String, ClientEvent> consumer = new KafkaConsumer<>(getProperties(bootstrapServers, ClientEvent.class));
         consumer.subscribe(Arrays.asList(TOPIC_NAME_SEND_CLIENT));
         ConsumerRecords<String, ClientEvent> records = consumer.poll(Duration.ofMillis(10000L));
         consumer.close();
@@ -85,7 +85,7 @@ class ClientActionServiceImplTest {
         //when
         clientActionService.createTransaction(transaction);
 
-        KafkaConsumer<String, TransactionEvent> consumer = new KafkaConsumer<>(getProperties(bootstrapServers));
+        KafkaConsumer<String, TransactionEvent> consumer = new KafkaConsumer<>(getProperties(bootstrapServers, TransactionEvent.class));
         consumer.subscribe(Arrays.asList(TOPIC_NAME_SEND_TRANSACTION));
         ConsumerRecords<String, TransactionEvent> records = consumer.poll(Duration.ofMillis(10000L));
         consumer.close();
@@ -100,7 +100,7 @@ class ClientActionServiceImplTest {
         assertEquals(transaction.getCreatedAt(), records.iterator().next().value().getCreatedAt());
     }
 
-    private Properties getProperties(String bootstrapServers) {
+    private Properties getProperties(String bootstrapServers, Class defaultType) {
         Properties properties = new Properties();
         properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
@@ -108,6 +108,7 @@ class ClientActionServiceImplTest {
         properties.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, "group-test");
         properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        properties.put(JsonDeserializer.VALUE_DEFAULT_TYPE, defaultType);
         return properties;
     }
 }

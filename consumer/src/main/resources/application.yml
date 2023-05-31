@@ -5,13 +5,16 @@ spring:
   kafka:
     bootstrap-servers: localhost:29092
     consumer:
-      group-client-id: "client-group-1"
-      group-transaction-id: "transaction-group-1"
+      group-id: "client-group-1"
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: '*'
 
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:15432}/kafka_db
     username: username

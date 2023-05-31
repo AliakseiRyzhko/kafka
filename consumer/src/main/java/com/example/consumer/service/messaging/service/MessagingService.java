@@ -17,15 +17,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class MessagingService {
     private static final String topicCreateClient = "${topic.create-client}";
     private static final String topicCreateTransaction = "${topic.create-transaction}";
-    private static final String clientGroupId = "${spring.kafka.consumer.group-client-id}";
-    private static final String transactionGroupId = "${spring.kafka.consumer.group-transaction-id}";
+    private static final String clientGroupId = "${spring.kafka.consumer.group-id}";
 
 
     private final ClientService clientService;
     private final ModelMapper modelMapper;
 
     @Transactional
-    @KafkaListener(topics = topicCreateClient, groupId = clientGroupId, containerFactory = "clientContainerFactory")
+    @KafkaListener(topics = topicCreateClient, groupId = clientGroupId, properties = {"spring.json.value.default.type=com.example.consumer.service.messaging.event.ClientEvent"})
     public ClientEvent consumeClient(ClientEvent clientEvent) {
         log.info("client message consumed {}", clientEvent);
         clientService.save(modelMapper.map(clientEvent, Client.class));
@@ -33,7 +32,7 @@ public class MessagingService {
     }
 
     @Transactional
-    @KafkaListener(topics = topicCreateTransaction, groupId = transactionGroupId, containerFactory = "transactionContainerFactory")
+    @KafkaListener(topics = topicCreateTransaction, groupId = clientGroupId, properties = {"spring.json.value.default.type=com.example.consumer.service.messaging.event.TransactionEvent"})
     public TransactionEvent consumeTransaction(TransactionEvent transactionEvent) {
         log.info("transaction message consumed {}", transactionEvent);
         if (!clientService.isExistClient(transactionEvent.getClientId())) {

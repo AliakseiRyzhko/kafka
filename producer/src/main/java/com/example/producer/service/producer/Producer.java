@@ -18,16 +18,16 @@ public class Producer {
     private String topicCreateClient;
     @Value("${topic.create-transaction}")
     private String topicCreateTransaction;
-    private final KafkaTemplate<String, Object> clientKafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public String sendClientMessage(ClientEvent clientEvent) {
-        clientKafkaTemplate.send(topicCreateClient, clientEvent);
+        kafkaTemplate.send(topicCreateClient, clientEvent.getId().toString(), clientEvent);
         log.info("Client produced {}", clientEvent);
         return "client message sent";
     }
 
     public String sendTransactionMessage(TransactionEvent transactionEvent) {
-        clientKafkaTemplate.send(topicCreateTransaction, transactionEvent);
+        kafkaTemplate.send(topicCreateTransaction,transactionEvent.getClientId().toString(), transactionEvent);
         log.info("Client transaction produced {}", transactionEvent);
         return "transaction message sent";
     }
