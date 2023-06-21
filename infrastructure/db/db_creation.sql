@@ -1,0 +1,1 @@
+create database kafka_db;
