@@ -91,6 +91,10 @@ services:
       - "15432:5432"
     volumes:
       - ./infrastructure/db/db_creation.sql:/docker-entrypoint-initdb.d/db_creation.sql
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
 
     restart: unless-stopped
 
@@ -122,6 +126,47 @@ services:
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:9092 --list
       "
-  
+  schema-registry:
+    image: confluentinc/cp-schema-registry:6.2.4
+    container_name: schema-registry
+    depends_on:
+      - kafka
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:9092
 
+  kafka-connect:
+    image: debezium/connect:1.9
+    container_name: kafka-connect
+    depends_on:
+      - kafka
+      - schema-registry
+    ports:
+      - 8083:8083
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "kafka-connect:8083/connectors" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: kafka-connect
+      CONFIG_STORAGE_TOPIC: connect_configs
+      OFFSET_STORAGE_TOPIC: connect_offsets
+      KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
 
+  config-connector:
+    image: debezium/connect:1.9
+    depends_on:
+      kafka-connect:
+        condition: service_healthy
+    volumes:
+      - ./kafka.connector.config.json:/kafka/kafka.connector.config.json
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      " echo -e 'Creating Data Generator source'
+            curl -H 'Content-Type: application/json' kafka-connect:8083/connectors --data @kafka.connector.config.json
+      "

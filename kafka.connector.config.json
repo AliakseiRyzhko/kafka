@@ -1,0 +1,14 @@
+{
+	"name": "kafka-client-transaction-connector",
+	"config": {
+		"connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+		"plugin.name": "pgoutput",
+		"database.hostname": "service-db",
+		"database.port": "5432",
+		"database.user": "username",
+		"database.password": "password",
+		"database.dbname": "kafka_db",
+		"database.server.name": "service-db",
+		"table.include.list": "public.client,public.transaction"
+	}
+}
