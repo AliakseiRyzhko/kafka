@@ -157,8 +157,8 @@ services:
       - bash
       - -c
       - |
-        confluent-hub install --verbose debezium/debezium-connector-postgres:1.7.0
-        confluent-hub install --verbose confluentinc/kafka-connect-jdbc:10.4.0
+        confluent-hub install --no-prompt debezium/debezium-connector-postgres:1.7.0
+        confluent-hub install --no-prompt confluentinc/kafka-connect-jdbc:10.4.0
         /etc/confluent/docker/run
 
   config-connector:
