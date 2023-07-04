@@ -1,0 +1,15 @@
+{
+	"name": "kafka-client-transaction-batch-connector",
+	"config": {
+		"connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
+		"connection.url": "jdbc:postgresql://db/kafka_db",
+		"connection.user": "username",
+		"connection.password": "password",
+		"topic.prefix": "jdbc-batch-topic",
+		"dialect.name" : "PostgreSqlDatabaseDialect",
+		"mode": "bulk",
+		"numeric.mapping" : "best_fit",
+		"poll.interval.ms": 50000,
+		"query": "select transaction.client_id, AVG(transaction.total_cost) AS cost_average from transaction where created_at >= CURRENT_DATE-1 AND created_at < CURRENT_DATE group by transaction.client_id;"
+	}
+}

@@ -31,7 +31,7 @@ services:
       - SPRING_KAFKA_BOOTSTRAP-SERVERS=kafka:9092
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:6.2.4
+    image: confluentinc/cp-zookeeper:7.2.5
     healthcheck:
       test: [ "CMD", "nc", "-vz", "localhost", "2181" ]
       interval: 10s
@@ -44,7 +44,7 @@ services:
       - 22181:2181
 
   kafka:
-    image: confluentinc/cp-kafka:6.2.4
+    image: confluentinc/cp-kafka:7.2.4
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -91,6 +91,10 @@ services:
       - "15432:5432"
     volumes:
       - ./infrastructure/db/db_creation.sql:/docker-entrypoint-initdb.d/db_creation.sql
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
 
     restart: unless-stopped
 
@@ -105,7 +109,7 @@ services:
       - "5050:80"
 
   kafka-topics-generator:
-    image: confluentinc/cp-kafka:6.2.4
+    image: confluentinc/cp-kafka:7.2.4
     depends_on:
       kafka:
         condition: service_healthy
@@ -122,6 +126,73 @@ services:
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:9092 --list
       "
-  
 
+  kafka-connect:
+    image:  confluentinc/cp-kafka-connect:7.2.0
+    container_name: kafka-connect
+    depends_on:
+      - kafka
+    ports:
+      - 8083:8083
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "kafka-connect:8083/connectors" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+      CONNECT_GROUP_ID: kafka-connect
+      CONNECT_CONFIG_STORAGE_TOPIC: connect_configs
+      CONNECT_OFFSET_STORAGE_TOPIC: connect_offsets
+      CONNECT_STATUS_STORAGE_TOPIC: connect-status
+      CONNECT_REST_PORT: 8083
+      CONNECT_LISTENERS: http://0.0.0.0:8083
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_PLUGIN_PATH: '/usr/local/share/kafka/plugins/,/usr/share/java,/usr/share/confluent-hub-components/,/connectors/'
+    command:
+      - bash
+      - -c
+      - |
+        confluent-hub install --no-prompt debezium/debezium-connector-postgres:1.7.0
+        confluent-hub install --no-prompt confluentinc/kafka-connect-jdbc:10.4.0
+        /etc/confluent/docker/run
 
+  config-connector:
+    image: confluentinc/cp-kafka-connect:7.2.0
+    depends_on:
+      kafka-connect:
+        condition: service_healthy
+    volumes:
+      - ./kafka.connector.config.json:/etc/kafka/kafka.connector.config.json
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      " echo -e 'Creating Data Generator source'
+            curl -H 'Content-Type: application/json' kafka-connect:8083/connectors --data @"../../etc/kafka/kafka.connector.config.json"
+      "
+
+  config-batch-connector:
+    image: confluentinc/cp-kafka-connect:7.2.0
+    depends_on:
+      kafka-connect:
+        condition: service_healthy
+    volumes:
+      - ./kafka.connector.batch.config.json:/etc/kafka/kafka.connector.batch.config.json
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      " echo -e 'Creating Data Generator source'
+             curl -H 'Content-Type: application/json' kafka-connect:8083/connectors --data @"../../etc/kafka/kafka.connector.batch.config.json"
+      "
+  kafka-connect-ui:
+    image: landoop/kafka-connect-ui:0.9.4
+    hostname: kafka-connect-ui
+    ports:
+      - "8002:8000"
+    environment:
+      CONNECT_URL: "http://kafka-connect:8083/"
+      PROXY: "true"
+    depends_on:
+      - kafka-connect
