@@ -6,9 +6,11 @@ import com.example.domain.Transaction;
 import com.example.serdes.CustomSerdes;
 import jakarta.annotation.PostConstruct;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.*;
+import org.apache.kafka.streams.state.WindowStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -28,9 +30,6 @@ public class EventStreamProcessor {
     private String topicCreateTransaction;
     @PostConstruct
     public void streamTopology() {
-        Properties config = new Properties();
-        config.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass()); // Set the default key serde
-
 
         // Создаем KStream для первого топика (транзакции)
         KStream<String, Transaction> transactionStream = streamsBuilder.stream(topicCreateTransaction,
@@ -46,10 +45,11 @@ public class EventStreamProcessor {
                 Joined.with(Serdes.String(), CustomSerdes.transaction(), CustomSerdes.client())
         );
 
-        // Агрегация суммы транзакций для каждого клиента со скользящим окном в две минуты
+        // Change the key type in the groupBy operation to Long
         KTable<Windowed<Long>, FraudClient> aggregationTable = joinedStream
-                .filter((key, fraudClient) -> fraudClient.getClientName().length() > 8) // Filter by client name length of 8 characters
-                .groupBy((key, fraudClient) -> fraudClient.getId())
+                .filter((key, fraudClient) -> fraudClient.getClientName().length() > 8)
+                .groupBy((key, fraudClient) -> fraudClient.getId(),
+                        Grouped.with(Serdes.Long(), CustomSerdes.fraudClient()))
                 .windowedBy(TimeWindows.of(Duration.ofMinutes(2)))
                 .aggregate(
                         () -> new FraudClient(0L, "", 0.0),
@@ -58,14 +58,15 @@ public class EventStreamProcessor {
                             total.setClientName(fraudClient.getClientName());
                             total.setTotal(total.getTotal() + fraudClient.getTotal());
                             return total;
-                        }
+                        },
+                        Materialized.<Long, FraudClient, WindowStore<Bytes, byte[]>>as("fraud-client-aggregation-store")
+                                .withKeySerde(Serdes.Long())
+                                .withValueSerde(CustomSerdes.fraudClient())
                 );
-
+// Write the filtered aggregation result to an output topic
         aggregationTable.toStream()
-                .filter((key, value) -> value.getTotal() > 1000)
-                .to("filtered-aggregation-topic",
+                .filter((windowedKey, fraudClient) -> fraudClient.getTotal() > 1000)
+                .to("topicFilteredAggregation",
                         Produced.with(WindowedSerdes.timeWindowedSerdeFrom(Long.class), CustomSerdes.fraudClient()));
-
-
     }
 }
