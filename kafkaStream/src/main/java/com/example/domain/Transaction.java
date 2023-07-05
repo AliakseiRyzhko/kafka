@@ -14,8 +14,6 @@ import java.time.LocalDateTime;
 public class Transaction {
     private String bank;
     private Long clientId;
-    private TransactionType transactionType;
     private Integer quantity;
     private Double price;
-    private LocalDateTime createdAt;
 }

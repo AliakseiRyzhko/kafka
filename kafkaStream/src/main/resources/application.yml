@@ -6,7 +6,9 @@ spring:
     streams:
       bootstrap-servers: localhost:29092
       application-id: kafka-streams
-
+      properties:
+        default:
+          key-serde: org.apache.kafka.common.serialization.Serdes$LongSerde
 topic:
   create-client: create.client
   create-transaction: create.transaction
