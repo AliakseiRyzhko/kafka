@@ -1,0 +1,14 @@
+server:
+  port: 8084
+
+spring:
+  kafka:
+    streams:
+      bootstrap-servers: localhost:29092
+      application-id: kafka-streams
+      properties:
+        "[default.key.serde]" : "org.apache.kafka.common.serialization.Serdes$LongSerde"
+        "[default.value.serde]" : "org.apache.kafka.common.serialization.Serdes$StringSerde"
+topic:
+  create-client: create.client
+  create-transaction: create.transaction
