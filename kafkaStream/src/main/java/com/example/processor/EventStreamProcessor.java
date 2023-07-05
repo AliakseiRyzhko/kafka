@@ -40,7 +40,7 @@ public class EventStreamProcessor {
 
         // Perform JOIN operation between KStream and KTable
         KStream<String, FraudClient> joinedStream = transactionStream.join(clientTable,
-                (transaction, client) -> new FraudClient(client.getId(), client.getClientName(), transaction.getPrice()),
+                (transaction, client) -> new FraudClient(client.getId(), client.getClientName(), transaction.getPrice() * transaction.getQuantity()),
                 Joined.with(Serdes.String(), CustomSerdes.transaction(), CustomSerdes.client())
         );
         // Aggregate the sum of transactions for each client with a sliding window of two minutes
@@ -51,11 +51,11 @@ public class EventStreamProcessor {
                 .windowedBy(TimeWindows.of(Duration.ofMinutes(2)))
                 .aggregate(
                         () -> new FraudClient(0L, "", 0.0),
-                        (key, fraudClient, clientTotal) -> {
-                            clientTotal.setId(fraudClient.getId());
-                            clientTotal.setClientName(fraudClient.getClientName());
-                            clientTotal.setTotal(clientTotal.getTotal() + fraudClient.getTotal());
-                            return clientTotal;
+                        (key, fraudClient, commonClientTotal) -> {
+                            commonClientTotal.setId(fraudClient.getId());
+                            commonClientTotal.setClientName(fraudClient.getClientName());
+                            commonClientTotal.setTotal(commonClientTotal.getTotal() + fraudClient.getTotal());
+                            return commonClientTotal;
                         },
                         Materialized.<Long, FraudClient, WindowStore<Bytes, byte[]>>as("fraud-client-aggregation-store")
                                 .withKeySerde(Serdes.Long())
